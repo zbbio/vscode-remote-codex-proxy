@@ -1,0 +1,31 @@
+# Private/local evidence
+backups/
+.release-prep/
+.release-prep-current
+verification-local/
+*.local.log
+*.local.json
+
+# Raw diagnostic screenshots
+/diagnostic-screen*.png
+/remote-window*.png
+/fast-check.png
+
+# Editor and OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Runtime caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~

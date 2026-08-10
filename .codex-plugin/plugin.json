@@ -1,0 +1,29 @@
+{
+  "name": "vscode-remote-codex-proxy",
+  "version": "0.1.0",
+  "description": "Diagnose, repair, verify, and roll back VS Code Remote-SSH Codex proxy failures.",
+  "author": {
+    "name": "Community Contributors"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "vscode",
+    "remote-ssh",
+    "proxy"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "VS Code Remote Codex Proxy",
+    "shortDescription": "Repair Remote-SSH Codex proxy failures",
+    "longDescription": "Evidence-driven diagnostics, scoped wrapper repair, verification, and rollback for Codex on VS Code Remote-SSH.",
+    "developerName": "Community Contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Remote-SSH diagnostics",
+      "Scoped proxy wrapper repair",
+      "Verified rollback"
+    ],
+    "defaultPrompt": "Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection."
+  }
+}

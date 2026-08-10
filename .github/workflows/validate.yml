@@ -1,0 +1,35 @@
+name: Validate plugin
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Validate plugin structure and eval dataset
+        run: python tests/validate_repository.py
+      - name: Parse Bash scripts
+        run: bash -n skills/vscode-remote-codex-proxy/scripts/*.sh tests/*.sh
+      - name: Lint Bash scripts
+        run: shellcheck skills/vscode-remote-codex-proxy/scripts/*.sh tests/*.sh
+      - name: Test remote diagnostics
+        run: bash tests/inspect-remote-fixture.sh
+      - name: Test wrapper lifecycle
+        run: bash tests/repair-wrapper-fixture.sh
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Parse and test PowerShell diagnostic
+        shell: powershell
+        run: .\tests\Inspect-CodexProxy.Tests.ps1

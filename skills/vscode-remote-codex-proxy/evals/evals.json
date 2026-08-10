@@ -1,0 +1,41 @@
+{
+  "skill_name": "vscode-remote-codex-proxy",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我在 Windows 上用 VS Code Remote-SSH 连 Linux。右侧已经有 Codex 图标，但点击后一直空白。我本机 Clash mixed-port 是 7897，远端账号和主机已经能登录。请从第一性原理诊断，不要把密码写进命令，也不要改远端 .bashrc。",
+      "expected_output": "A layered, read-only-first diagnosis that distinguishes a contributed view from a remotely installed and activated Linux extension, verifies the SSH tunnel and remote process, and proposes only scoped changes.",
+      "files": [],
+      "expectations": [
+        "Separates UI registration, remote extension installation, activation, transport, and authentication into distinct layers.",
+        "Requires a Linux remote extension path and Codex app-server process as evidence.",
+        "Does not request or persist a password and does not edit .bashrc.",
+        "Uses a dedicated SSH alias and remote loopback binding."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "code --remote ssh-remote+gpu --install-extension openai.chatgpt 显示成功，--list-extensions 也能看到，但远端没有 Codex。帮我判断哪里出了问题并给出能验证真假的办法。",
+      "expected_output": "The response identifies installation authority as the leading hypothesis, rejects local CLI output as sufficient evidence, and installs/verifies from the active remote integrated terminal.",
+      "files": [],
+      "expectations": [
+        "Treats `code --remote` extension output as potentially local and misleading.",
+        "Checks whether `--locate-extension` resolves to a Windows path.",
+        "Uses the remote integrated terminal for installation.",
+        "Verifies a `-linux-x64` path and Linux Codex process after reload."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "远端通过 127.0.0.1:17897 curl OpenAI 报 unexpected eof，但本机代理访问 OpenAI 返回 401。请按工程控制论循环判断 SSH 隧道是不是坏了，不要直接重装。",
+      "expected_output": "The response treats the curl failure as client-specific until cross-client evidence is collected, tests wget or another TLS stack, and accepts non-200 HTTP responses as transport success.",
+      "files": [],
+      "expectations": [
+        "Does not conclude the tunnel is broken from one curl/OpenSSL error.",
+        "Cross-checks with wget/GnuTLS or another independent client.",
+        "Treats a real 401/403/421 response as DNS, TLS, and HTTP transport success.",
+        "Uses observe, hypothesize, control, measure, disturbance, and rollback stages."
+      ]
+    }
+  ]
+}
