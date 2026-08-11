@@ -36,6 +36,30 @@ function Add-Result {
     })
 }
 
+function Invoke-NativeCapture {
+    param(
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [string[]]$Arguments = @()
+    )
+
+    $previousPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell 5.1 materializes native stderr as ErrorRecord
+        # objects. Preserve those records as evidence and let the process exit
+        # code decide success instead of treating every warning as terminating.
+        $ErrorActionPreference = 'Continue'
+        $output = @(& $FilePath @Arguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
+
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Output   = @($output | ForEach-Object { $_.ToString() })
+    }
+}
+
 function Get-MapValue {
     param($Map, [string]$Name)
     if ($null -eq $Map) { return $null }
@@ -170,8 +194,9 @@ if ($null -eq $sshCommand) {
     Add-Result 'SSH' 'Alias resolves' 'FAIL' 'SSH config is unavailable; alias resolution skipped'
 } else {
     Add-Result 'SSH' 'OpenSSH client available' 'PASS' $sshCommand.Source
-    $sshResolved = & $sshCommand.Source -F $SshConfigPath -G $HostAlias 2>&1
-    if ($LASTEXITCODE -eq 0) {
+    $sshInvocation = Invoke-NativeCapture -FilePath $sshCommand.Source -Arguments @('-F', $SshConfigPath, '-G', $HostAlias)
+    $sshResolved = $sshInvocation.Output
+    if ($sshInvocation.ExitCode -eq 0) {
         $joined = $sshResolved -join "`n"
         $hostName = ([regex]::Match($joined, '(?im)^hostname\s+(.+)$')).Groups[1].Value.Trim()
         $user = ([regex]::Match($joined, '(?im)^user\s+(.+)$')).Groups[1].Value.Trim()
@@ -281,11 +306,16 @@ if ($null -eq $codeCommand) {
 if (-not $SkipNetwork) {
     $curl = Join-Path $env:SystemRoot 'System32\curl.exe'
     if (Test-Path -LiteralPath $curl) {
-        $statusCode = & $curl -x "http://127.0.0.1:$LocalProxyPort" -sS -o NUL -w '%{http_code}' --connect-timeout 15 'https://api.openai.com/v1/models' 2>&1
-        if ($LASTEXITCODE -eq 0 -and "$statusCode" -match '^\d{3}$' -and "$statusCode" -ne '000') {
+        $curlInvocation = Invoke-NativeCapture -FilePath $curl -Arguments @(
+            '-x', "http://127.0.0.1:$LocalProxyPort",
+            '-sS', '-o', 'NUL', '-w', '%{http_code}',
+            '--connect-timeout', '15', 'https://api.openai.com/v1/models'
+        )
+        $statusCode = $curlInvocation.Output -join ' '
+        if ($curlInvocation.ExitCode -eq 0 -and "$statusCode" -match '^\d{3}$' -and "$statusCode" -ne '000') {
             Add-Result 'Local proxy' 'OpenAI HTTP response' 'PASS' "HTTP $statusCode"
         } else {
-            Add-Result 'Local proxy' 'OpenAI HTTP response' 'FAIL' ("exit={0} output={1}" -f $LASTEXITCODE, ($statusCode -join ' '))
+            Add-Result 'Local proxy' 'OpenAI HTTP response' 'FAIL' ("exit={0} output={1}" -f $curlInvocation.ExitCode, $statusCode)
         }
     } else {
         Add-Result 'Local proxy' 'OpenAI HTTP response' 'WARN' 'curl.exe not found'
