@@ -1,76 +1,74 @@
 # VS Code Remote-SSH Codex Proxy Skill
 
-这是一个面向 Codex 的 Skill，用证据驱动的工程控制论循环诊断、修复、验证和回滚以下链路：
+让 Codex 在 VS Code Remote-SSH 环境中通过 Windows 本机代理正常工作。
 
-```text
-Codex UI
-  -> Remote-SSH extension host
-  -> Linux x86_64 Codex app-server
-  -> remote 127.0.0.1:<remote-port>
-  -> SSH reverse tunnel
-  -> Windows 127.0.0.1:<local-port>
-  -> HTTP/mixed proxy
-  -> OpenAI
-```
+当 Codex 在远端 Linux 主机上无法连接、反复重连，或在 VS Code / 扩展升级后失效时，调用这个 Skill。它不是需要单独运行的应用：你在 Codex 中调用它，Codex 会根据当前环境完成诊断、修复、验证和需要时的回滚。
 
-核心原则：先定义可观测的成功条件，再寻找第一个失效边界；每次只改变一个边界，并用独立测量决定保留还是回滚。
+## 适合遇到这些情况
 
-> 本项目与 OpenAI、Microsoft、Clash 或 Mihomo 没有隶属或背书关系。
+- Remote-SSH 窗口中的 Codex 无法连接，或显示 `Reconnecting 5/5`、`stream disconnected before completion`。
+- Windows 本机代理可用，但远端 Linux 环境无法通过代理访问服务。
+- SSH 反向转发、远端 VS Code Server 或 Codex `app-server` 没有继承代理配置。
+- 更新 VS Code、Remote-SSH 或 `openai.chatgpt` 扩展后，原本可用的连接再次失效。
 
-## 分发结构
+## 它会做什么
 
-Skill 的运行时入口是 `skills/vscode-remote-codex-proxy/SKILL.md`。本仓库使用 **Plugin** 作为 GitHub 分发容器，目录如下：
-
-```text
-.codex-plugin/plugin.json
-skills/vscode-remote-codex-proxy/
-  SKILL.md
-  agents/openai.yaml
-  scripts/
-  references/
-  evals/evals.json
-tests/
-.github/workflows/validate.yml
-```
-
-Plugin 只负责打包和分发；Codex 实际加载的是 Skill 目录。这样仓库级 README、CI 和测试不会进入 Skill 的运行时上下文，Skill 目录也可以独立复制安装。
-
-## 支持边界
-
-- 本地：Windows、VS Code、Remote-SSH、OpenSSH client、HTTP/mixed proxy。
-- 远端：Linux **x86_64**、Bash、VS Code Server、`openai.chatgpt-*-linux-x64`。
-- 网络：远端仅通过 SSH reverse forward 访问本地回环代理。
-- 变更范围：专用 SSH 别名、隔离的 VS Code Server、当前版本的 Codex 二进制入口。
-
-当前 Wrapper 定位逻辑仅支持 `bin/linux-x86_64/codex`。其他 CPU 架构应先扩展定位和回归夹具，不能直接套用。
+- 定位问题是在本机代理、SSH 转发、远端网络、扩展安装，还是 Codex 进程入口。
+- 只修改已经证实需要修改的专用 SSH 配置、隔离的 VS Code Server 或当前扩展入口。
+- 在修改前保存原件；修改后给出可复查的验证结果和可执行的回滚方式。
 
 ## 安装
 
-在 Codex 中调用 `$skill-installer`，要求从以下仓库安装 `vscode-remote-codex-proxy`：
+### 在 Codex 中安装
+
+在 Codex 中调用 `$skill-installer` 并提供下面的 Skill 目录 URL：
 
 ```text
-https://github.com/zbbio/vscode-remote-codex-proxy
+https://github.com/zbbio/vscode-remote-codex-proxy/tree/main/skills/vscode-remote-codex-proxy
 ```
 
-独立 Skill 的手动安装方式：
+安装后新开一个任务，或重启 Codex，使它发现新 Skill。
+
+### 手动安装
 
 ```powershell
 $repository = Join-Path $HOME 'src\vscode-remote-codex-proxy'
 git clone https://github.com/zbbio/vscode-remote-codex-proxy.git $repository
 $source = Join-Path $repository 'skills\vscode-remote-codex-proxy'
-$target = Join-Path $HOME '.agents\skills\vscode-remote-codex-proxy'
+$skillRoot = Join-Path $HOME '.codex\skills'
+$target = Join-Path $skillRoot 'vscode-remote-codex-proxy'
 Copy-Item -LiteralPath $source -Destination $target -Recurse
 ```
 
-重启 Codex 或开启新任务后显式调用：
+## 使用
+
+在 Codex 中明确调用：
 
 ```text
 Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection.
 ```
 
-## 诊断
+也可以直接描述现象，例如“Remote-SSH 里的 Codex 一直重连，帮我检查代理”。Skill 会收集必要的环境信息，并按发现的问题继续处理。
 
-本地只读诊断：
+## 这是一个 Skill，不是另一个应用
+
+运行时入口是 [`skills/vscode-remote-codex-proxy/SKILL.md`](skills/vscode-remote-codex-proxy/SKILL.md)。它包含给 Codex 的操作步骤、命令和判断条件。
+
+仓库根目录的 [`.codex-plugin/plugin.json`](.codex-plugin/plugin.json) 只提供打包和分发元数据。实际被 Codex 加载和执行的是上述 Skill 目录，因此仓库的 README、CI 和测试不会占用 Skill 的运行时上下文。
+
+## 支持范围
+
+- 本地：Windows、VS Code、Remote-SSH、OpenSSH client，以及 HTTP/mixed proxy。
+- 远端：Linux x86_64、Bash、VS Code Server 和 `openai.chatgpt-*-linux-x64` 扩展。
+- 网络：远端通过 SSH reverse forward 访问 Windows 本机回环代理。
+
+当前 Wrapper 修复只支持 `bin/linux-x86_64/codex`。其他 CPU 架构需要先补充对应的定位逻辑和回归测试。
+
+## 诊断、修复与回滚
+
+通常直接调用 Skill 即可。它会先运行只读检查，再决定是否需要修改。若需要为 Codex 入口添加代理 Wrapper，安装程序会保存原始二进制、生成验证记录和回滚脚本；扩展升级后也会重新检查入口是否发生变化。
+
+本地只读诊断脚本也可以单独运行：
 
 ```powershell
 .\skills\vscode-remote-codex-proxy\scripts\Inspect-CodexProxy.ps1 `
@@ -79,33 +77,19 @@ Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection.
   -RemoteProxyPort 17897
 ```
 
-远端只读诊断：
+诊断输出默认隐藏用户名、主机名和代理变量值。脚本退出码为：`0` 表示没有失败检查，`1` 表示至少一个检查失败，`2` 表示参数错误。
 
-```bash
-bash inspect_remote_codex.sh 17897
-```
+## 技术细节
 
-诊断脚本默认不输出用户名、主机名或代理变量值。退出码为：`0` 无失败、`1` 至少一个检查失败、`2` 参数错误。`--always-zero` 仅用于必须返回零的报告采集器。
+以下内容供想了解实现或参与维护的人查阅，不是首次使用前必须阅读的内容：
 
-## Wrapper 修复与回滚
+- [运行时操作步骤](skills/vscode-remote-codex-proxy/SKILL.md)
+- [诊断与变更流程](skills/vscode-remote-codex-proxy/references/control-loop.md)
+- [常见故障模式](skills/vscode-remote-codex-proxy/references/failure-modes.md)
+- [贡献指南](CONTRIBUTING.md)
+- [安全策略](SECURITY.md)
 
-仅在本地代理、SSH 反向转发、远端真实 HTTP 响应、Linux 扩展和 Codex `app-server` 已被证实时使用：
-
-```bash
-bash repair_codex_proxy_wrapper.sh install 17897 "$HOME/.vscode-server-codex-proxy/.vscode-server"
-bash repair_codex_proxy_wrapper.sh check 17897 "$HOME/.vscode-server-codex-proxy/.vscode-server"
-bash repair_codex_proxy_wrapper.sh rollback 17897 "$HOME/.vscode-server-codex-proxy/.vscode-server"
-```
-
-定义：
-
-```text
-<repair-root> = ${server-root%/.vscode-server}/repairs
-```
-
-安装在替换目标前先生成保存原件、Wrapper 副本、补丁说明、验证记录和可执行回滚脚本。目标通过原子 `mv` 提交；提交失败时恢复原状态。回滚同时校验原始文件、保留二进制和当前 Wrapper 的 SHA-256，避免覆盖升级后的程序。
-
-## 本地验证
+## 开发验证
 
 ```powershell
 python .\tests\validate_repository.py
@@ -123,25 +107,7 @@ bash tests/inspect-remote-fixture.sh
 bash tests/repair-wrapper-fixture.sh
 ```
 
-GitHub Actions 会在 Ubuntu 与 Windows 重复结构、语法、脱敏、失败码、回滚和本地监听边界测试。
-
-## 首次 GitHub 发布清单
-
-1. 创建 GitHub 仓库并设置 `origin`。
-2. 推送默认分支与 `v0.1.0` 标签。
-3. 确认 Actions 全绿，并将工作流设为分支保护的必需检查。
-4. 启用 Secret scanning、Push protection、Dependabot 与私密漏洞报告。
-5. 创建 GitHub Release，核对版本与 `.codex-plugin/plugin.json` 一致。
-6. 用全新目录执行一次安装、显式调用、失败诊断、修复和回滚冒烟测试。
-
-私密漏洞报告只有在 GitHub 仓库创建并启用 **Security → Advisories → Private vulnerability reporting** 后才真正可用。
-
-## 参考与贡献
-
-- [Codex Skills 官方文档](https://developers.openai.com/codex/build-skills)
-- [Codex Plugins 官方文档](https://developers.openai.com/plugins/build/plugins)
-- [贡献指南](CONTRIBUTING.md)
-- [安全策略](SECURITY.md)
+> 本项目与 OpenAI、Microsoft、Clash 或 Mihomo 没有隶属或背书关系。
 
 ## License
 
