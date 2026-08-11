@@ -1,6 +1,6 @@
 interface:
   display_name: "VS Code Remote Codex Proxy"
-  short_description: "Diagnose and repair Remote-SSH proxy failures"
-  default_prompt: "Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection."
+  short_description: "Set up Remote-SSH proxy access for Codex"
+  default_prompt: "Use $vscode-remote-codex-proxy to set up Codex in VS Code Remote-SSH through my Windows proxy."
 policy:
   allow_implicit_invocation: false

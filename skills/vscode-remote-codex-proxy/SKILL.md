@@ -1,6 +1,6 @@
 ---
 name: vscode-remote-codex-proxy
-description: Diagnose, deploy, repair, verify, and roll back Codex in VS Code Remote-SSH when a Linux remote host reaches OpenAI through a Windows Clash/Mihomo HTTP proxy and an SSH reverse tunnel. Use for missing remote Codex, `openai.chatgpt`, `stream disconnected before completion`, `Reconnecting 5/5`, remote extension upgrades, proxy variables missing from the Codex child process, or recurring failures after a previously working setup.
+description: Set up, verify, repair, and roll back the proxy path for Codex in VS Code Remote-SSH when a Linux remote host must reach the network through a Windows local HTTP or mixed proxy over an SSH reverse tunnel. Use when the user wants to run Codex inside VS Code Remote-SSH through a Windows proxy, or for missing remote Codex, `openai.chatgpt`, `stream disconnected before completion`, `Reconnecting 5/5`, remote extension upgrades, proxy variables missing from the Codex child process, or recurring failures after a previously working setup.
 ---
 
 # VS Code Remote-SSH Codex Proxy
@@ -9,7 +9,7 @@ Treat the setup as a controlled distributed system:
 
 `Codex UI -> remote extension host -> Linux Codex app-server -> remote 127.0.0.1:<remote-port> -> SSH reverse tunnel -> local 127.0.0.1:<local-port> -> OpenAI`
 
-Repair the first broken boundary only. Preserve evidence, scope every change to the dedicated SSH alias and isolated VS Code Server, and verify the final behavior with a real Codex response.
+Set up or repair the first required boundary only. Preserve evidence, scope every change to the dedicated SSH alias and isolated VS Code Server, and verify the final behavior with a real Codex response.
 
 ## Safety and scope
 

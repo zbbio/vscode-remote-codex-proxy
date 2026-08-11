@@ -1,20 +1,21 @@
 # VS Code Remote-SSH Codex Proxy Skill
 
-让 Codex 在 VS Code Remote-SSH 环境中通过 Windows 本机代理正常工作。
+如果你想在 VS Code Remote-SSH 中使用 Codex，而远端 Linux 需要通过 Windows 本机代理访问网络，就调用这个 Skill。
 
-当 Codex 在远端 Linux 主机上无法连接、反复重连，或在 VS Code / 扩展升级后失效时，调用这个 Skill。它不是需要单独运行的应用：你在 Codex 中调用它，Codex 会根据当前环境完成诊断、修复、验证和需要时的回滚。
+它的主功能是为 VS Code Remote-SSH 里的 Codex 建立、检查和维护一条可验证、可回滚的远程代理通路。它不是单独运行的应用：你在 Codex 中调用它，Codex 会根据当前环境处理本机代理、SSH 反向转发、远端 VS Code Server 和 Codex 进程入口之间的连接。
 
-## 适合遇到这些情况
+## 什么时候用
 
-- Remote-SSH 窗口中的 Codex 无法连接，或显示 `Reconnecting 5/5`、`stream disconnected before completion`。
-- Windows 本机代理可用，但远端 Linux 环境无法通过代理访问服务。
-- SSH 反向转发、远端 VS Code Server 或 Codex `app-server` 没有继承代理配置。
-- 更新 VS Code、Remote-SSH 或 `openai.chatgpt` 扩展后，原本可用的连接再次失效。
+- 你准备在 VS Code Remote-SSH 窗口里使用 Codex，但远端 Linux 不能直接访问所需网络。
+- Windows 本机代理可用，需要让远端 Codex 通过 SSH 反向转发使用它。
+- 已经配置过远程代理，但 Codex 显示 `Reconnecting 5/5` 或 `stream disconnected before completion`。
+- 更新 VS Code、Remote-SSH 或 `openai.chatgpt` 扩展后，原本可用的 Codex 代理通路失效。
 
 ## 它会做什么
 
-- 定位问题是在本机代理、SSH 转发、远端网络、扩展安装，还是 Codex 进程入口。
-- 只修改已经证实需要修改的专用 SSH 配置、隔离的 VS Code Server 或当前扩展入口。
+- 帮你建立或核对 Windows 本机代理、SSH 反向转发、远端回环端口和 VS Code Remote-SSH 配置。
+- 验证远端 Codex 是否真正通过这条代理通路工作，而不只看配置是否写过。
+- 必要时只修改已经证实需要修改的专用 SSH 配置、隔离的 VS Code Server 或当前 Codex 扩展入口。
 - 在修改前保存原件；修改后给出可复查的验证结果和可执行的回滚方式。
 
 ## 安装
@@ -45,10 +46,10 @@ Copy-Item -LiteralPath $source -Destination $target -Recurse
 在 Codex 中明确调用：
 
 ```text
-Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection.
+Use $vscode-remote-codex-proxy to set up Codex in VS Code Remote-SSH through my Windows proxy.
 ```
 
-也可以直接描述现象，例如“Remote-SSH 里的 Codex 一直重连，帮我检查代理”。Skill 会收集必要的环境信息，并按发现的问题继续处理。
+也可以直接描述目标或现象，例如“我想在 VS Code Remote-SSH 里用 Codex，帮我把远端代理通路配好”，或“Remote-SSH 里的 Codex 一直重连，帮我检查代理”。Skill 会收集必要的环境信息，并按发现的问题继续处理。
 
 ## 这是一个 Skill，不是另一个应用
 
@@ -64,9 +65,9 @@ Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection.
 
 当前 Wrapper 修复只支持 `bin/linux-x86_64/codex`。其他 CPU 架构需要先补充对应的定位逻辑和回归测试。
 
-## 诊断、修复与回滚
+## 验证、维护与回滚
 
-通常直接调用 Skill 即可。它会先运行只读检查，再决定是否需要修改。若需要为 Codex 入口添加代理 Wrapper，安装程序会保存原始二进制、生成验证记录和回滚脚本；扩展升级后也会重新检查入口是否发生变化。
+通常直接调用 Skill 即可。它会先运行只读检查，确认本机代理、SSH 转发和远端 Codex 进程的实际状态，再决定是否需要修改。若需要为 Codex 入口添加代理 Wrapper，安装程序会保存原始二进制、生成验证记录和回滚脚本；扩展升级后也会重新检查入口是否发生变化。
 
 本地只读诊断脚本也可以单独运行：
 
