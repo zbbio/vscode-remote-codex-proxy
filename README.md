@@ -46,12 +46,18 @@ tests/
 
 ## 安装
 
-仓库发布到 GitHub 后，可在 Codex 中调用 `$skill-installer`，要求从该 GitHub 仓库安装 `vscode-remote-codex-proxy`。
+在 Codex 中调用 `$skill-installer`，要求从以下仓库安装 `vscode-remote-codex-proxy`：
+
+```text
+https://github.com/zbbio/vscode-remote-codex-proxy
+```
 
 独立 Skill 的手动安装方式：
 
 ```powershell
-$source = Join-Path (Get-Location) 'skills\vscode-remote-codex-proxy'
+$repository = Join-Path $HOME 'src\vscode-remote-codex-proxy'
+git clone https://github.com/zbbio/vscode-remote-codex-proxy.git $repository
+$source = Join-Path $repository 'skills\vscode-remote-codex-proxy'
 $target = Join-Path $HOME '.agents\skills\vscode-remote-codex-proxy'
 Copy-Item -LiteralPath $source -Destination $target -Recurse
 ```
