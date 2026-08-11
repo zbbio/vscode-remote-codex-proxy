@@ -1,7 +1,7 @@
 {
   "name": "vscode-remote-codex-proxy",
   "version": "0.1.0",
-  "description": "Diagnose, repair, verify, and roll back VS Code Remote-SSH Codex proxy failures.",
+  "description": "Set up, verify, repair, and roll back the proxy path for Codex in VS Code Remote-SSH.",
   "author": {
     "name": "Community Contributors"
   },
@@ -15,15 +15,15 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "VS Code Remote Codex Proxy",
-    "shortDescription": "Repair Remote-SSH Codex proxy failures",
-    "longDescription": "Evidence-driven diagnostics, scoped wrapper repair, verification, and rollback for Codex on VS Code Remote-SSH.",
+    "shortDescription": "Set up Remote-SSH proxy access for Codex",
+    "longDescription": "Use when you want to run Codex in VS Code Remote-SSH through a Windows local proxy. Sets up, verifies, repairs, and rolls back the scoped proxy path.",
     "developerName": "Community Contributors",
     "category": "Developer Tools",
     "capabilities": [
-      "Remote-SSH diagnostics",
-      "Scoped proxy wrapper repair",
+      "Remote-SSH proxy setup",
+      "Codex proxy-path verification",
       "Verified rollback"
     ],
-    "defaultPrompt": "Use $vscode-remote-codex-proxy to diagnose my Remote-SSH Codex connection."
+    "defaultPrompt": "Use $vscode-remote-codex-proxy to set up Codex in VS Code Remote-SSH through my Windows proxy."
   }
 }
