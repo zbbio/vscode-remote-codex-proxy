@@ -1,6 +1,6 @@
-# VS Code Remote-SSH Codex Proxy Plugin
+# VS Code Remote-SSH Codex Proxy Skill
 
-这是一个社区维护的 Codex Plugin，用证据驱动的工程控制论循环诊断、修复、验证和回滚以下链路：
+这是一个面向 Codex 的 Skill，用证据驱动的工程控制论循环诊断、修复、验证和回滚以下链路：
 
 ```text
 Codex UI
@@ -17,9 +17,9 @@ Codex UI
 
 > 本项目与 OpenAI、Microsoft、Clash 或 Mihomo 没有隶属或背书关系。
 
-## 发布结构
+## 分发结构
 
-本仓库采用 **Plugin 仓库** 结构，运行时 Skill 位于 `skills/vscode-remote-codex-proxy/`：
+Skill 的运行时入口是 `skills/vscode-remote-codex-proxy/SKILL.md`。本仓库使用 **Plugin** 作为 GitHub 分发容器，目录如下：
 
 ```text
 .codex-plugin/plugin.json
@@ -33,7 +33,7 @@ tests/
 .github/workflows/validate.yml
 ```
 
-选择 Plugin 而不是“仓库根目录即 Skill”，是因为仓库级 README、CI 和测试不应被安装进 Skill 的运行时上下文。Skill 目录仍可被独立复制安装。
+Plugin 只负责打包和分发；Codex 实际加载的是 Skill 目录。这样仓库级 README、CI 和测试不会进入 Skill 的运行时上下文，Skill 目录也可以独立复制安装。
 
 ## 支持边界
 
